@@ -9,13 +9,13 @@ import {
     LinkAnnotation, 
     BookmarkView,
     ThumbnailView, 
-    Print, 
     TextSelection, 
     Annotation, 
     TextSearch, 
     FormFields, 
     FormDesigner, 
-    Inject 
+    Inject,
+    ToolbarItem
 } from '@syncfusion/ej2-react-pdfviewer';
 
 interface PDFViewerProps {
@@ -30,15 +30,41 @@ export default function PDFViewer({ documentPath }: PDFViewerProps) {
         setResourceUrl(`${window.location.protocol}//${window.location.host}/js/ej2-pdfviewer-lib`);
     }, []);
 
-    const handleBeforePrint = () => {
-        setTimeout(() => {
-            const frames = window.frames as unknown as Record<string, Window>;
-            const printWindow = frames["ejs-pdfviewer-print-window"];
-            if (printWindow) {
-                printWindow.focus();
-                printWindow.print();
-            }
-        }, 500);
+    const handleToolbarClick = (args: any) => {
+        console.log("Toolbar Clicked:", args);
+
+        if (args?.item?.id === 'CustomPrintButton') {
+            console.log("Custom Print Button Clicked");
+
+            // 🔍 Fetch the PDF manually from the documentPath
+            fetch(documentPath)
+                .then(response => response.blob()) // Convert to Blob
+                .then(blob => {
+                    console.log("✅ PDF Blob Retrieved");
+
+                    // 🖨️ Create a Blob URL
+                    const pdfURL = URL.createObjectURL(blob);
+
+                    // 🖨️ Open in a new tab and trigger print
+                    const printWindow = window.open(pdfURL);
+                    if (printWindow) {
+                        printWindow.onload = () => {
+                            printWindow.print();
+                            URL.revokeObjectURL(pdfURL); // Clean up the URL after printing
+                        };
+                    } else {
+                        console.error("❌ Failed to open print window.");
+                    }
+                })
+                .catch(error => console.error("❌ Error fetching PDF:", error));
+        }
+    };
+
+    const handleDocumentLoad = () => {
+        console.log("✅ PDF Loaded Successfully - Setting Fit Width");
+        if (viewerRef.current) {
+            viewerRef.current.magnificationModule.fitToWidth(); // 🔥 Fit Width
+        }
     };
 
     if (!resourceUrl) {
@@ -49,20 +75,26 @@ export default function PDFViewer({ documentPath }: PDFViewerProps) {
         <div className='control-section'>
             <PdfViewerComponent 
                 id="container" 
-                ref={viewerRef}
+                ref={viewerRef} 
                 documentPath={documentPath}
                 resourceUrl={resourceUrl}
-                printMode="Default"
-                printStart={handleBeforePrint}
+                enablePrint={false} // Disable default print button
+                toolbarClick={handleToolbarClick} // Handle custom print button click
+                documentLoad={handleDocumentLoad} // 📌 Fit to Width when PDF Loads
                 toolbarSettings={{ 
-                    showTooltip : true, 
+                    showTooltip: true, 
                     toolbarItems: [
                         'PageNavigationTool', 
                         'MagnificationTool', 
                         'PanTool', 
                         'SearchOption', 
-                        'PrintOption'
-                    ]
+                        { 
+                            text: 'Print', 
+                            prefixIcon: 'e-icons e-print', 
+                            id: 'CustomPrintButton', 
+                            align: 'Right' 
+                        }
+                    ] as ToolbarItem[]
                 }}
                 style={{ height: '100vh' }}>
                 <Inject services={[
@@ -73,7 +105,6 @@ export default function PDFViewer({ documentPath }: PDFViewerProps) {
                     LinkAnnotation,
                     BookmarkView,
                     ThumbnailView,
-                    Print,
                     TextSelection,
                     TextSearch,
                     FormFields,
