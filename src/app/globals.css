@@ -11,6 +11,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@media print {
+  @page {
+    size: portrait;
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
