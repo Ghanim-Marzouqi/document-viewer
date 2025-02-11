@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
     PdfViewerComponent, 
     Toolbar, 
@@ -23,12 +23,22 @@ interface PDFViewerProps {
 }
 
 export default function PDFViewer({ documentPath }: PDFViewerProps) {
+    const [resourceUrl, setResourceUrl] = useState('');
+
+    useEffect(() => {
+        setResourceUrl(`${window.location.protocol}//${window.location.host}/js/ej2-pdfviewer-lib`);
+    }, []);
+
+    if (!resourceUrl) {
+        return null; // or a loading state
+    }
+    
     return (
         <div className='control-section'>
             <PdfViewerComponent 
                 id="container" 
                 documentPath={documentPath}
-                resourceUrl="https://cdn.syncfusion.com/ej2/26.2.11/dist/ej2-pdfviewer-lib"
+                resourceUrl={resourceUrl}
                 toolbarSettings={{ 
                     showTooltip : true, 
                     toolbarItems: [
