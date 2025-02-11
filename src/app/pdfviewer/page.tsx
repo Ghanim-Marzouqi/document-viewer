@@ -2,8 +2,9 @@
 
 import PDFViewer from '../../../components/viewers/PDFViewer';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function Page() {
+function PDFViewerContent() {
     const searchParams = useSearchParams();
     const file = searchParams.get('file');
 
@@ -15,5 +16,13 @@ export default function Page() {
         <main className="min-h-screen p-4">
             <PDFViewer documentPath={file} />
         </main>
+    );
+}
+
+export default function Page() {
+    return (
+        <Suspense fallback={<div className="min-h-screen p-4">جاري التحميل...</div>}>
+            <PDFViewerContent />
+        </Suspense>
     );
 }
