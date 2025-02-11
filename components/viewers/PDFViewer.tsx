@@ -22,6 +22,13 @@ interface PDFViewerProps {
     documentPath: string;
 }
 
+// Define a custom type for the toolbar event
+type PdfViewerToolbarClickEvent = {
+    item: {
+        id: string;
+    };
+};
+
 export default function PDFViewer({ documentPath }: PDFViewerProps) {
     const [resourceUrl, setResourceUrl] = useState('');
     const viewerRef = useRef<PdfViewerComponent | null>(null);
@@ -30,22 +37,22 @@ export default function PDFViewer({ documentPath }: PDFViewerProps) {
         setResourceUrl(`${window.location.protocol}//${window.location.host}/js/ej2-pdfviewer-lib`);
     }, []);
 
-    const handleToolbarClick = (args: any) => {
+    const handleToolbarClick = (args: PdfViewerToolbarClickEvent) => {
         console.log("Toolbar Clicked:", args);
 
-        if (args?.item?.id === 'CustomPrintButton') {
+        if (args.item.id === 'CustomPrintButton') {
             console.log("Custom Print Button Clicked");
 
-            // 🔍 Fetch the PDF manually from the documentPath
+            // Fetch the PDF manually from the documentPath
             fetch(documentPath)
                 .then(response => response.blob()) // Convert to Blob
                 .then(blob => {
                     console.log("✅ PDF Blob Retrieved");
 
-                    // 🖨️ Create a Blob URL
+                    // Create a Blob URL
                     const pdfURL = URL.createObjectURL(blob);
 
-                    // 🖨️ Open in a new tab and trigger print
+                    // Open in a new tab and trigger print
                     const printWindow = window.open(pdfURL);
                     if (printWindow) {
                         printWindow.onload = () => {
@@ -63,7 +70,7 @@ export default function PDFViewer({ documentPath }: PDFViewerProps) {
     const handleDocumentLoad = () => {
         console.log("✅ PDF Loaded Successfully - Setting Fit Width");
         if (viewerRef.current) {
-            viewerRef.current.magnificationModule.fitToWidth(); // 🔥 Fit Width
+            viewerRef.current.magnificationModule.fitToWidth(); // Fit Width
         }
     };
 
@@ -80,7 +87,7 @@ export default function PDFViewer({ documentPath }: PDFViewerProps) {
                 resourceUrl={resourceUrl}
                 enablePrint={false} // Disable default print button
                 toolbarClick={handleToolbarClick} // Handle custom print button click
-                documentLoad={handleDocumentLoad} // 📌 Fit to Width when PDF Loads
+                documentLoad={handleDocumentLoad} // Fit to Width when PDF Loads
                 toolbarSettings={{ 
                     showTooltip: true, 
                     toolbarItems: [
