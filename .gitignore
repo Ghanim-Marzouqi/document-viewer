@@ -42,3 +42,5 @@ next-env.d.ts
 
 # docker images
 nextjs-standalone.tar
+
+# something
