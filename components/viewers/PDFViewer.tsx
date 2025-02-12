@@ -39,33 +39,42 @@ export default function PDFViewer({ documentPath }: PDFViewerProps) {
 
     const handleToolbarClick = (args: PdfViewerToolbarClickEvent) => {
         console.log("Toolbar Clicked:", args);
-
+    
         if (args.item.id === 'CustomPrintButton') {
             console.log("Custom Print Button Clicked");
-
-            // Fetch the PDF manually from the documentPath
+    
             fetch(documentPath)
-                .then(response => response.blob()) // Convert to Blob
+                .then(response => response.blob()) // Convert response to Blob
                 .then(blob => {
                     console.log("✅ PDF Blob Retrieved");
-
+    
                     // Create a Blob URL
                     const pdfURL = URL.createObjectURL(blob);
-
-                    // Open in a new tab and trigger print
-                    const printWindow = window.open(pdfURL);
-                    if (printWindow) {
-                        printWindow.onload = () => {
-                            printWindow.print();
-                            URL.revokeObjectURL(pdfURL); // Clean up the URL after printing
-                        };
-                    } else {
-                        console.error("❌ Failed to open print window.");
-                    }
+    
+                    // Create a hidden iframe
+                    const iframe = document.createElement("iframe");
+                    iframe.style.position = "absolute";
+                    iframe.style.width = "0px";
+                    iframe.style.height = "0px";
+                    iframe.style.border = "none";
+                    iframe.src = pdfURL;
+                    document.body.appendChild(iframe);
+    
+                    // Ensure the PDF fully loads before printing
+                    iframe.onload = () => {
+                        setTimeout(() => {
+                            try {
+                                iframe.contentWindow?.focus(); // Ensure the iframe is focused
+                                iframe.contentWindow?.print(); // Trigger print dialog
+                            } catch (error) {
+                                console.error("❌ Print failed:", error);
+                            }
+                        }, 1000); // Delay before triggering print to ensure full load
+                    };
                 })
                 .catch(error => console.error("❌ Error fetching PDF:", error));
         }
-    };
+    };        
 
     const handleDocumentLoad = () => {
         console.log("✅ PDF Loaded Successfully - Setting Fit Width");
